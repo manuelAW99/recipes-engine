@@ -1,0 +1,2 @@
+
+from .ingredient import IngredientGraph
