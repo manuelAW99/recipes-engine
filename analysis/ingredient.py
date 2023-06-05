@@ -76,6 +76,8 @@ class IngredientGraph():
         self.graph = nx.Graph()
         self._create_nodes(ingredientes, dict([('type', 'ingredient')]))
         self._create_edges(relationship_belonged, n_rows)
+        #todo: annadir aca los nodos tipo receta
+        #todo: annadir aca las aristas ingrediente - receta, poniendo como propiedades, el ingredientes estructurado
                 
         if not fdest is None:
             time = datetime.datetime.now()
