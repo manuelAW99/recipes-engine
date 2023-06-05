@@ -94,10 +94,13 @@ class IngredientGraph():
             data (pandas.core.frame.DataFrame): Recipe information.
 
         Returns:
-            dict(str, set): Diccionario ingredientes - conjunto de recetas en el que aparece
+            (dict(str, set), set): 
+                Dictionary ingredients - set of recipes in which it appears and,
+                Set of all ingredients.
             
         """
         relation = dict()
+        ingredients = set()
         
         n_rows, _ = data.shape
         for i in range(n_rows):
@@ -105,12 +108,14 @@ class IngredientGraph():
             recipe_name = row['recipe']
             
             for ingredient in row['ner'][1:-2].replace("'", '').split(', '):
+                ingredients.add(ingredient)
+                
                 if ingredient in relation:
                     relation[ingredient].add(recipe_name)
                 else:
                     relation[ingredient] = set([recipe_name])
                     
-        return relation
+        return (relation, ingredients)
     
     
     
