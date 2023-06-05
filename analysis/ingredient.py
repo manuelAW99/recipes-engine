@@ -29,8 +29,8 @@ class IngredientGraph():
             model_file (str): Path of the precomputed model file. The file is expected to have `.graphml` extension.
             
         Raises:
-            FileNotFoundError: Si la información del parametro `model_file` no es una ruta de un fichero válido.
-            EOFError: Si la extensión del fichero `model_file` no es 'graphml'.
+            FileNotFoundError: If the information in the `model_file` parameter is not a valid file path.
+            EOFError: If the extension of the `model_file` file is not 'graphml'.
             
         """  
         if not path.isfile(model_file):
@@ -54,9 +54,9 @@ class IngredientGraph():
             fdest (str): Folder path to store the model. If it does not have a defined value, the file will not be created; otherwise, the file will be created with the extension `.graphml` and with name `ingredient_graph`, concatenated from the date the file was created. Defaults to None.
             
         Raises:
-            FileNotFoundError: Si la información del parametro `fdata` no es una ruta de un fichero válido.
-            EOFError: Si la extensión del fichero `fdata` no es 'csv'.
-            NotADirectoryError: Si la información del parametro `fdata` no es una ruta de una carpeta válida.
+            FileNotFoundError: If the information in the `fdata` parameter is not a valid file path.
+            EOFError: If the extension of the `model_file` file is not 'csv'.
+            NotADirectoryError: If the data in the `fdata` parameter is not a valid folder path.
             
         """        
         if not path.isfile(fdata):
