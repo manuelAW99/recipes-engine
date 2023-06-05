@@ -71,14 +71,11 @@ class IngredientGraph():
         
         csv = pd.read_csv(fdata, sep='|')
         n_rows, _ = csv.shape
-        relationship_belonged = self._token_by_text(csv)
+        (relationship_belonged, ingredientes) = self._token_by_text(csv)
         
         self.graph = nx.Graph()
-        
-        for (ingredient1, ingredient2) in itertools.combinations(relationship_belonged.keys(), 2):
-            value = pointwise_mutual_information(ingredient1, ingredient2, relationship_belonged, n_rows)
-            if not value is None: 
-                self.graph.add_edge(ingredient1, ingredient2, weight=value)
+        self._create_nodes(ingredientes, dict([('type', 'ingredient')]))
+        self._create_edges(relationship_belonged, n_rows)
                 
         if not fdest is None:
             time = datetime.datetime.now()
@@ -116,6 +113,30 @@ class IngredientGraph():
                     relation[ingredient] = set([recipe_name])
                     
         return (relation, ingredients)
+    
+    def _create_nodes(self, nodes, tags):
+        """Create the graph nodes
+
+        Args:
+            nodes (list of str): Node list.
+            tags (dict): Dictionary with node properties.
+            
+        """
+        for node_name in nodes:
+            self.graph.add_node(node_name, **tags)        
+        
+    def _create_edges(self, relation, n_recipes):
+        """Create the graph edges
+
+        Args:
+            relation (dict(str, list of str)): Dictionary ingredients - set of recipes in which it appears.
+            n_recipes (int): Total recipes.
+            
+        """     
+        for (ingredient1, ingredient2) in itertools.combinations(relation.keys(), 2):
+            value = pointwise_mutual_information(ingredient1, ingredient2, relation, n_recipes)
+            if not value is None: 
+                self.graph.add_edge(ingredient1, ingredient2, weight=value)   
     
     
     
