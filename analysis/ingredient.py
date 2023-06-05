@@ -23,13 +23,24 @@ class IngredientGraph():
             
             
     def load_model(self, model_file):
-        """Carga un modelo de grafo
+        """Load a graph, from a file
 
         Args:
             model_file (str): Path of the precomputed model file. The file is expected to have `.graphml` extension.
             
+        Raises:
+            FileNotFoundError: Si la información del parametro `model_file` no es una ruta de un fichero válido.
+            EOFError: Si la extensión del fichero `model_file` no es 'graphml'.
+            
         """  
-        raise NotImplementedError('')    
+        if not path.isfile(model_file):
+            raise FileNotFoundError('Path file `' + model_file + '` does not exist')
+        
+        _, file_extension = path.splitext(model_file)
+        if file_extension != '.graphml':
+            raise EOFError('File defined in the `model_file` parameter does not have the expected extension (.graphml). Extension found ' + file_extension)
+
+        self.graph = nx.read_graphml(model_file)   
         
         
     def build_model(self, fdata, fdest = None):
@@ -100,6 +111,9 @@ class IngredientGraph():
                     relation[ingredient] = set([recipe_name])
                     
         return relation
+    
+    
+    
     
     
         
