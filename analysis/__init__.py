@@ -1,2 +1,2 @@
 
-from .ingredient import IngredientGraph
+from .ingredient import FoodGraph
