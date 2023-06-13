@@ -8,6 +8,8 @@ import networkx as nx
 from .relation import pointwise_mutual_information
 from parser import RecipeJSON
 
+from pprint import pprint   
+
 
 class FoodGraph():
     
@@ -129,14 +131,12 @@ class FoodGraph():
         """
         self._create_correlation_edges_of_ingredients(recipes)
         self._create_ingredient_substitution_edges(recipes)
-        self._create_edges_of_belonging(recipes)
+        # self._create_edges_of_belonging(recipes)
         
         
     
     def _create_correlation_edges_of_ingredients(self, recipes):
-        """Creates the edges of the graph, associated to the correlation between the ingredients. The edges will have the fields:
-            - weight (float): Value that indicates the correlation between the nodes that it joins.
-            - type(str): Default to 'ingredient-ingredient correlation'.
+        """Creates the edges of the graph, associated to the correlation between the ingredients.
 
         Args:
             recipes (instance of an enumerator function): Recipes list. Each object returned by the iterator is expected to be a dictionary with the fields:
@@ -149,6 +149,7 @@ class FoodGraph():
         relation = dict()
         n_recipes = 0
         
+        # Build a comfortable structure for work. ingredient -> recipes in which it appears
         for recipe in recipes():
             n_recipes += 1
             recipe_name = recipe['nombre']
@@ -160,8 +161,11 @@ class FoodGraph():
                 else:
                     relation[ingredient_name] = set([recipe_name])
                     
+        # Establish the edges (relationship) between the pairs of ingredients
         for (ingredient1, ingredient2) in itertools.combinations(relation.keys(), 2):
             value = pointwise_mutual_information(ingredient1, ingredient2, relation, n_recipes)
+
+            # Ignore the value=None, since it means that the pair of ingredients never appear in the same recipe
             if not value is None: 
                 tags = dict([
                     ('type', 'ingredient-ingredient correlation'),
@@ -170,9 +174,53 @@ class FoodGraph():
                     ('label', 'i-i c: ' + str(value))
                 ])
                 self.graph.add_edge(ingredient1, ingredient2, **tags)   
-    
+ 
     def _create_ingredient_substitution_edges(self, recipes):
-        pass
+        """Create the edges of the graph, to establish the ingredient substitution relationship
+
+        Args:
+            Args:
+            recipes (instance of an enumerator function): Recipes list. Each object returned by the iterator is expected to be a dictionary with the fields:
+                - nombre (str): Recipe name.
+                - ingredientes (list of dict): List of ingredients. Its fields are:
+                    - nombre (str): Nombre del ingrediente.
+                    - variantes (list of int): List of ingredients that can be substituted. The list contains positions within the `ingredients` list.
+            
+        """        
+        relations = []
+        
+        # Extract the relations, according to the recipes
+        for recipe in recipes():
+            ingredients = [ingredient for ingredient in recipe['ingredientes']]
+            mark = [True for _ in range(len(ingredients))]
+            
+            for i in range(len(mark)): 
+                substitutions = ingredients[i]['variantes']
+                
+                if mark[i] and len(substitutions) > 0:
+                    
+                    # Extract substitution relationships within the recipe
+                    relations.append(set())
+
+                    for j in [i] + ingredients[i]['variantes']:
+                        mark[j] = False
+                        relations[-1].add(ingredients[j]['nombre'])
+                        
+        # Remove duplicate relationships
+        relations = [relation for i, relation in enumerate(relations) \
+            if not relation in relations[i+1:]]
+        
+        # Establish the edges (relationship) between the pairs of ingredients
+        for relation in relations:
+            for (ingredient1, ingredient2) in itertools.combinations(relation, 2):
+                value = 1
+                tags = dict([
+                    ('type', 'ingredient-ingredient substitution'),
+                    ('weight', value),
+                    ('label', 'i-i s: ' + str(value))
+                ])
+                self.graph.add_edge(ingredient1, ingredient2, **tags)   
+            
     
     def _create_edges_of_belonging(self, recipes):
         pass
