@@ -1,14 +1,16 @@
 # -*- coding:utf-8 -*- 
 #!/usr/bin/env python
 
-from analysis import IngredientGraph
+
+
+from analysis import FoodGraph
 from tmp_create import create_recipes_and_save_csv
 
 # create_recipes_and_save_csv(n_recipe=50, minimum_amount_of_ingredients=5, maximum_amount_of_ingredients=7, fname='crazy_recipes')
 
-info = IngredientGraph()
-# info.build_model('data/crazy_recipes.csv', 'data')
-info.load_model('data/ingredient_graph_05-06-2023 16:16:33.graphml')
+# info = FoodGraph(graphs_path='data/')
+info = FoodGraph(recipes_path='data/recetas_de_nitza-small.json')
+
 
 # print(nx.k_nearest_neighbors(info.graph))
 
@@ -26,3 +28,4 @@ info.load_model('data/ingredient_graph_05-06-2023 16:16:33.graphml')
 # G.add_edge("a", "d", weight=0.3)
 
 # nx.write_graphml_lxml(G, "data/fourpath.graphml")
+

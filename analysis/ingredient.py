@@ -229,6 +229,7 @@ class FoodGraph():
                         mark[j] = False
                         relations[-1].add(ingredients[j]['nombre'])
                         
+        #todo: Analizar si sería beneficioso eliminar los duplicados. Se pudiese hacer algo como: si una relación ya existe, aumentaré el peso de la arista q existe entre ambos nodos, para indicar un mayor valor entre ellos.
         # Remove duplicate relationships
         relations = [relation for i, relation in enumerate(relations) \
             if not relation in relations[i+1:]]
@@ -246,7 +247,31 @@ class FoodGraph():
             
     
     def _create_edges_of_belonging(self, recipes):
-        pass
+        """Creates the edges of the graph, which relates the recipes with the ingredients that make it up
+
+        Args:
+            recipes (instance of an enumerator function): Recipes list. Each object returned by the iterator is expected to be a dictionary with the fields:
+                - nombre (str): Recipe name.
+                - ingredientes (list of dict): List of ingredients. Its fields are:
+                    - nombre (str): Nombre del ingrediente.
+                    - variantes (list of int): List of ingredients that can be substituted. The list contains positions within the `ingredients` list.
+            
+        """  
+        for recipe in recipes(): 
+            recipe_name = recipe['nombre']
+            
+            for ingredient in recipe['ingredientes']:
+                ingredient_name = ingredient['nombre']
+                
+                #todo: ver si las propiedades de los nodos y las aristas, serán en español o inglés
+                tags = dict(filter(lambda elem: elem[0] in ['opcional', 'cantidad', 'unidad', 'forma'], ingredient.items()))
+                
+                #todo: analizar si poner peso contante a todas las aristas
+                tags['weight'] = 1
+                #todo: analizar si ponerle label a la arista y qué ponerle
+                
+                self.recipe_ingredient_relationship_graph.add_edge(recipe_name, ingredient_name, **tags) 
+            
     
     
     
