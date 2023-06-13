@@ -50,10 +50,10 @@ class RecipeJSON:
 
         Yields:
             dict: The fields are: 
-                nombre (str): Recipe name.
-                ingredientes (list of dict): List of ingredients. Its fields are:
-                    nombre (str): Nombre del ingrediente.
-                    variantes (list of int): List of ingredients that can be substituted. The list contains positions within the `ingredients` list.
+                - nombre (str): Recipe name.
+                - ingredientes (list of dict): List of ingredients. Its fields are:
+                    - nombre (str): Nombre del ingrediente.
+                    - variantes (list of int): List of ingredients that can be substituted. The list contains positions within the `ingredients` list.
             
         """        
         for recipe in self.recipes.values():
