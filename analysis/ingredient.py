@@ -3,9 +3,12 @@
 from os import path
 import itertools
 import datetime
-import pandas as pd
 import networkx as nx
+import random as rnd
+
 from .relation import pointwise_mutual_information
+from .error import *
+
 from parser import RecipeJSON
 
 
@@ -37,6 +40,10 @@ class FoodGraph():
             self._build_model(recipes_path, save_path)
             
             
+    ###################
+    ### DATA UPLOAD ###
+    ###################
+    
     def _load_model(self, graphs_path):
         """Load graphs from a containing folder
 
@@ -69,7 +76,11 @@ class FoodGraph():
         else:
             self.recipe_ingredient_relationship_graph = nx.read_graphml(file)
         
-        
+    
+    #########################
+    ### DATA CONSTRUCTION ###
+    #########################
+    
     def _build_model(self, data_path, fdest = None):
         """Construct the relationship graph between the ingredients. Two ingredients are related if they appear in the same recipe.
 
@@ -125,10 +136,6 @@ class FoodGraph():
                 ('label', node_name)
             ])
             self.recipe_ingredient_relationship_graph.add_node(node_name, **tags)
-            
-            self.ingredient_substitution_graph
-            self.ingredient_correlation_graph
-            self.recipe_ingredient_relationship_graph
             
             for ingredient in recipe['ingredientes']:
                 node_name = ingredient['nombre']
@@ -271,7 +278,30 @@ class FoodGraph():
                 #todo: analizar si ponerle label a la arista y qué ponerle
                 
                 self.recipe_ingredient_relationship_graph.add_edge(recipe_name, ingredient_name, **tags) 
+                
+                
+    ########################################
+    ### INFORMATION EXTRACTION FUNCTIONS ###
+    ########################################
+    
+    def replace_ingredient(self, ingredient):
+        """Returns a list of ingredients that can replace the one defined
+
+        Args:
+            ingredient (str): Ingredient name.
             
+        Raises:
+            networkx.exception.NetworkXError: If the ingredient does not appear in the list of nodes
+
+        Returns:
+            list of str: List of ingredients.
+            
+        """  
+        values = [i for i in self.ingredient_substitution_graph.neighbors(ingredient)]
+        rnd.shuffle(values)
+        return values
+    
+    
     
     
     
