@@ -8,50 +8,67 @@ import networkx as nx
 from .relation import pointwise_mutual_information
 from parser import RecipeJSON
 
-from pprint import pprint   
+
+INGREDIENT_SUBSTITUTION_GRAPH_FILE = 'ingredient_substitution_graph.graphml'
+INGREDIENT_CORRELATION_GRAPH_FILE = 'ingredient_correlation_graph.graphml'
+RECIPE_INGREDIENT_RELATIONSHIP_GRAPH_FILE = 'recipe_ingredient_relationship_graph.graphml'
 
 
 class FoodGraph():
     
-    def __init__(self, graph_path=None, recipes_path=None, save_path='data/'):
+    def __init__(self, graphs_path=None, recipes_path=None, save_path='data/'):
         """
         Load into memory or build the model (graph)
         
         Args:
-            - graph_path (str, optional): Path of the precomputed model file. Path of the precomputed model file. The file is expected to have `.graphml` extension. Defaults to None.
+            - graphs_path (str, optional): Path of the folder that contains the graphs. The `ingredient_substitution_graph.graphml`, `ingredient_correlation_graph.graphml` and `recipe_ingredient_relationship_graph.graphml` files are expected to exist inside the folder. Defaults to None.
             - recipes_csv_path (str, optional): Path of the file in json format, with the information of the recipes. Defaults to None.
             - save_path (str, optional): If recipes_csv_path is non-null, it indicates the folder where the model will be stored. Defaults to 'data/'.
             
         Raise:
-            - ValueError: The path of these files has a null value. The `graph_path` or `recipes_path` parameter must have a value.
+            - ValueError: The path of these files has a null value. The `graphs_path` or `recipes_path` parameter must have a value.
             
         """ 
-        if graph_path is None and recipes_path is None:
-            raise ValueError('Both parameters (graph_path, recipes_csv_path) have null value. Unable to build or load model.')
-        elif not graph_path is None:
-            self._load_model(graph_path) 
+        if graphs_path is None and recipes_path is None:
+            raise ValueError('Both parameters (graphs_path, recipes_csv_path) have null value. Unable to build or load model.')
+        elif not graphs_path is None:
+            self._load_model(graphs_path) 
         else: 
             self._build_model(recipes_path, save_path)
             
-    def _load_model(self, graph_path):
-        """Load a graph, from a file
+            
+    def _load_model(self, graphs_path):
+        """Load graphs from a containing folder
 
         Args:
-            - graph_path (str, optional): Path of the precomputed model file. The file is expected to have `.graphml` extension.
+            - graphs_path (str): Path of the folder that contains the graphs. The `ingredient_substitution_graph.graphml`, `ingredient_correlation_graph.graphml` and `recipe_ingredient_relationship_graph.graphml` files are expected to exist inside the folder.
             
         Raises:
-            - FileNotFoundError: If the information in the `graph_path` parameter is not a valid file path.
-            - EOFError: If the extension of the `graph_path` file is not 'graphml'.
+            - NotADirectoryError: If the folder path (parameter) does not exist.
+            - FileNotFoundError: If any expected file is not found, inside the defined folder.
             
         """  
-        if not path.isfile(graph_path):
-            raise FileNotFoundError('Path file `' + graph_path + '` does not exist')
+        if not path.isdir(graphs_path):
+            raise NotADirectoryError('Path folder `' + graphs_path + '` does not exist.')
         
-        _, file_extension = path.splitext(graph_path)
-        if file_extension != '.graphml':
-            raise EOFError('File defined in the `graph_path` parameter does not have the expected extension (.graphml). Extension found ' + file_extension)
-
-        self.graph = nx.read_graphml(graph_path)   
+        file = path.join(graphs_path, INGREDIENT_SUBSTITUTION_GRAPH_FILE)
+        if not path.isfile(file):
+            raise FileNotFoundError('Cannot find `' + INGREDIENT_SUBSTITUTION_GRAPH_FILE + '` file, inside `' + graphs_path + '`.')
+        else:
+            self.ingredient_substitution_graph = nx.read_graphml(file) 
+            
+        file = path.join(graphs_path, INGREDIENT_CORRELATION_GRAPH_FILE)
+        if not path.isfile(file):
+            raise FileNotFoundError('Cannot find `' + INGREDIENT_CORRELATION_GRAPH_FILE + '` file, inside `' + graphs_path + '`.')
+        else:
+            self.ingredient_correlation_graph = nx.read_graphml(file)
+            
+        file = path.join(graphs_path, RECIPE_INGREDIENT_RELATIONSHIP_GRAPH_FILE)
+        if not path.isfile(file):
+            raise FileNotFoundError('Cannot find `' + RECIPE_INGREDIENT_RELATIONSHIP_GRAPH_FILE + '` file, inside `' + graphs_path + '`.')
+        else:
+            self.recipe_ingredient_relationship_graph = nx.read_graphml(file)
+        
         
     def _build_model(self, data_path, fdest = None):
         """Construct the relationship graph between the ingredients. Two ingredients are related if they appear in the same recipe.
@@ -79,22 +96,21 @@ class FoodGraph():
         if not (fdest is None or path.isdir(fdest)):
             raise NotADirectoryError('Path folder `' + fdest + '` does not exist')
         
-        # csv = pd.read_csv(fdata, sep='|')
-        # n_rows, _ = csv.shape
-        # (relationship_belonged, ingredientes) = self._token_by_text(csv)
         data = RecipeJSON(data_path)
         
-        self.graph = nx.Graph()
+        self.ingredient_substitution_graph = nx.Graph()
+        self.ingredient_correlation_graph = nx.Graph()
+        self.recipe_ingredient_relationship_graph = nx.Graph()
+        
         self._create_nodes(data.get_recipes())
         self._create_edges(data.get_recipes)
-        # #todo: annadir aca las aristas ingrediente - receta, poniendo como propiedades, el ingredientes estructurado
                 
         if not fdest is None:
-            time = datetime.datetime.now()
-            fname = 'ingredient_graph_' + time.strftime("%d-%m-%Y %H:%M:%S") + '.graphml'
-            fpath = path.join(fdest, fname)
-            nx.write_graphml_xml(self.graph, fpath)
-        
+            nx.write_graphml_xml(self.ingredient_substitution_graph, path.join(fdest, INGREDIENT_SUBSTITUTION_GRAPH_FILE))
+            nx.write_graphml_xml(self.ingredient_correlation_graph, path.join(fdest, INGREDIENT_CORRELATION_GRAPH_FILE))
+            nx.write_graphml_xml(self.recipe_ingredient_relationship_graph, path.join(fdest, RECIPE_INGREDIENT_RELATIONSHIP_GRAPH_FILE))
+            
+            
     def _create_nodes(self, recipes):
         """Create the graph nodes
 
@@ -108,7 +124,11 @@ class FoodGraph():
                 ('type', 'recipe_name'),
                 ('label', node_name)
             ])
-            self.graph.add_node(node_name, **tags)
+            self.recipe_ingredient_relationship_graph.add_node(node_name, **tags)
+            
+            self.ingredient_substitution_graph
+            self.ingredient_correlation_graph
+            self.recipe_ingredient_relationship_graph
             
             for ingredient in recipe['ingredientes']:
                 node_name = ingredient['nombre']
@@ -116,7 +136,10 @@ class FoodGraph():
                     ('type', 'ingredient_name'),
                     ('label', node_name)
                 ])
-                self.graph.add_node(node_name, **tags)
+                self.ingredient_substitution_graph.add_node(node_name, **tags)
+                self.ingredient_correlation_graph.add_node(node_name, **tags)
+                self.recipe_ingredient_relationship_graph.add_node(node_name, **tags)
+        
         
     def _create_edges(self, recipes):
         """Create the graph edges
@@ -131,8 +154,7 @@ class FoodGraph():
         """
         self._create_correlation_edges_of_ingredients(recipes)
         self._create_ingredient_substitution_edges(recipes)
-        # self._create_edges_of_belonging(recipes)
-        
+        self._create_edges_of_belonging(recipes)
         
     
     def _create_correlation_edges_of_ingredients(self, recipes):
@@ -173,7 +195,8 @@ class FoodGraph():
                     ('weight', value),
                     ('label', 'i-i c: ' + str(value))
                 ])
-                self.graph.add_edge(ingredient1, ingredient2, **tags)   
+                self.ingredient_correlation_graph.add_edge(ingredient1, ingredient2, **tags)   
+ 
  
     def _create_ingredient_substitution_edges(self, recipes):
         """Create the edges of the graph, to establish the ingredient substitution relationship
@@ -219,7 +242,7 @@ class FoodGraph():
                     ('weight', value),
                     ('label', 'i-i s: ' + str(value))
                 ])
-                self.graph.add_edge(ingredient1, ingredient2, **tags)   
+                self.ingredient_substitution_graph.add_edge(ingredient1, ingredient2, **tags)   
             
     
     def _create_edges_of_belonging(self, recipes):
