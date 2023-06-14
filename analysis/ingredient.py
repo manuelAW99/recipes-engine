@@ -10,7 +10,7 @@ from .relation import pointwise_mutual_information
 from .error import *
 
 from parser import RecipeJSON
-
+from pprint import pprint
 
 INGREDIENT_SUBSTITUTION_GRAPH_FILE = 'ingredient_substitution_graph.graphml'
 INGREDIENT_CORRELATION_GRAPH_FILE = 'ingredient_correlation_graph.graphml'
@@ -301,8 +301,32 @@ class FoodGraph():
         rnd.shuffle(values)
         return values
     
+    def recipes_with(self, ingredients, match_all=False):
+        """Returns recipes that contain the defined ingredients
+
+        Args:
+            - ingredients (list of str): Lista de ingredientes.
+            - match_all (bool, optional): Indicates if the recipes to be returned must have all the ingredients defined. Defaults to False.
+            
+        Raises:
+            networkx.exception.NetworkXError: If any ingredient on the list does not appear in the graph.
+
+        Returns:
+            list of str | list of (str, int): If match_all = True then a list with the name of the recipes is returned, such that all the ingredients defined in `ingredients` appear in it. Otherwise, it returns a list of recipe names and the number of ingredients that appear in it, according to those defined, ordered from greatest intersection to least.
+            
+        """ 
+        associated_recipes = set(ingredients)
+        for ingredient in ingredients:
+            # Because of the way the graph is built, those adjacent to the ingredients are recipes.
+            for adjacent in self.recipe_ingredient_relationship_graph.neighbors(ingredient):
+                associated_recipes.add(adjacent)
     
-    
+        subgraph = nx.subgraph(self.recipe_ingredient_relationship_graph, associated_recipes)
+        recipe_nodes = [node for node, data in subgraph.nodes(data=True) if data['type'] == 'recipe_name']
+        degrees = sorted(nx.degree(subgraph, recipe_nodes), key=lambda x: x[1], reverse=True)
+
+        return [recipe for (recipe, degree) in degrees if degree == len(ingredients)] \
+            if match_all else degrees
     
     
     
