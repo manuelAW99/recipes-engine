@@ -22,45 +22,25 @@ class RecipeJSON:
             with open(pfile, 'r', encoding='utf8', errors='ignore') as f:
                 self.recipes = json.load(f)
                 
-    # def ingredients_name(self):
-    #     """Returns the list of all ingredients
-
-    #     Returns:
-    #         list od str: List of ingredients
-            
-    #     """
-    #     ingredients = set()
-    #     for data in self.recipes.values():
-    #         for ing in data['ingredientes']:
-    #             ingredients.add(ing['nombre'])
-        
-    #     return list(ingredients)
-    
-    # def recipes_name(self):
-    #     """Returns the name of all recipes
-
-    #     Returns:
-    #         list od str: List of ingredients
-            
-    #     """
-    #     return [d['nombre'] for d in self.recipes.values()]
-    
     def get_recipes(self):
         """Returns the recipes
 
         Yields:
             dict: The fields are: 
-                - nombre (str): Recipe name.
-                - ingredientes (list of dict): List of ingredients. Its fields are:
-                    - nombre (str): Nombre del ingrediente.
-                    - variantes (list of int): List of ingredients that can be substituted. The list contains positions within the `ingredients` list.
+                - name (str): Recipe name.
+                - ingredients (list of dict): List of ingredients. Its fields are:
+                    - name (str): Ingredient name.
+                    - variants (list of int): List of ingredients that can be substituted. The list contains positions within the `ingredients` list.
+                - ingredients_simplified (list of dict): List of standardized/simplified ingredients. Its fields are:
+                    - name (str): Ingredient name.
+                    - variants (list of int): List of ingredients that can be substituted. The list contains positions within the `ingredients` list.
             
         """        
-        for recipe in self.recipes.values():
-            yield recipe
+        for key, value in self.recipes.items():
+            restructured = dict()
+            restructured['name'] = key
+            restructured.update(value)
+            
+            yield restructured
     
-    # def 
-
-
-
 
