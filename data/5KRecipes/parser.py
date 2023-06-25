@@ -15,9 +15,9 @@ ingredients_simpl_file.close()
 
 recipes_with_ing = {}
 for rs, ing, ings in zip(recipes, ingredients, ingredients_simpl):
-    recipes_with_ing[rs.replace("\n", "")] = {
-        "ingredients": [{"name": i.replace("\n", ""), "variants": []} for i in ing.split(",")],
-        "ingredients_simplified": [{"name": i.replace("\n", ""), "variants": []} for i in ings.split(",")]
+    recipes_with_ing[rs.replace("\n", "").lower()] = {
+        "ingredients_extended": [{"name": i.replace("\n", "").replace("_", " "), "variants": []} for i in ing.split(",")],
+        "ingredients": [{"name": i.replace("\n", "").replace("_", " "), "variants": []} for i in ings.split(",")]
     }
     
 dump(recipes_with_ing, open("parsed_data/recipes.json", "w"))

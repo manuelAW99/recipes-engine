@@ -3,7 +3,7 @@ from pprint import pprint
 from translate import Translator
 translator = Translator(from_lang='es', to_lang='en')
 
-recipes: dict = load(open("parsed_data/recipes.json", "r"))
+recipes: dict = load(open("raw_data/recipes.json", "r"))
 
 ingredients_set: set = set()
 recipes_set: set = set([recipe for recipe in recipes])
@@ -51,14 +51,14 @@ def translate_group(name: str, sentences: set, save: bool = False):
 # translate_group("recipes", gropus_rec, save=True) 
 # translate_group("ingredients", groups_ing, save=True)
 
-translate_ing = load(open("trans_ingredients.json", "r"))
-translate_rec = load(open("trans_recipes.json", "r"))
+translate_ing = load(open("parsed_data/trans_ingredients.json", "r"))
+translate_rec = load(open("parsed_data/trans_recipes.json", "r"))
 
 new_recipes: dict = {}
 
 for recipe in recipes:
     new_name = translate_rec[recipe.lower()]
-    new_recipes[new_name] = {"ingredients": [], "ingredients_simplified": []}
+    new_recipes[new_name] = {"ingredients": [], "ingredients_extended": []}
     for ingredient in recipes[recipe]["ingredientes"]:
         new_ing_name = translate_ing[ingredient["nombre"]]
         new_recipes[new_name]["ingredients"].append({"name": new_ing_name, "variants": ingredient["variantes"]})
