@@ -41,6 +41,7 @@ def get_recipes(graph: FoodGraph) -> List[str]:
     with right:
         select_ingredient = st.selectbox(f"Select an ingredient of this recipe ({len(ingredients)})", options=ingredients)
         result_ingredients = graph.replace_ingredient(select_ingredient)
+        all_ingredients.remove(select_ingredient)
         changes = st.multiselect(label="I can substitute this ingredient by ...", options=all_ingredients, key=ingredient)
         if changes:
             st.button("Send info", on_click=save_substitutions, kwargs=dict(ingredient=select_ingredient, substitutions=changes))
