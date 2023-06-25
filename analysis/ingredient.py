@@ -19,7 +19,7 @@ RECIPE_INGREDIENT_RELATIONSHIP_GRAPH_FILE = 'recipe_ingredient_relationship_grap
 
 class FoodGraph():
     
-    def __init__(self, graphs_path=None, recipes_path=None, save_path='data/'):
+    def __init__(self, graphs_path=None, recipes_path=None, save_path='data/graphs/'):
         """
         Load into memory or build the model (graph)
         
@@ -130,15 +130,15 @@ class FoodGraph():
             
         """
         for recipe in recipes:
-            node_name = recipe['nombre']
+            node_name = recipe['name']
             tags = dict([
                 ('type', 'recipe_name'),
                 ('label', node_name)
             ])
             self.recipe_ingredient_relationship_graph.add_node(node_name, **tags)
             
-            for ingredient in recipe['ingredientes']:
-                node_name = ingredient['nombre']
+            for ingredient in recipe['ingredients']:
+                node_name = ingredient['name']
                 tags = dict([
                     ('type', 'ingredient_name'),
                     ('label', node_name)
@@ -181,10 +181,10 @@ class FoodGraph():
         # Build a comfortable structure for work. ingredient -> recipes in which it appears
         for recipe in recipes():
             n_recipes += 1
-            recipe_name = recipe['nombre']
+            recipe_name = recipe['name']
             
-            for ingredient in recipe['ingredientes']:
-                ingredient_name = ingredient['nombre']
+            for ingredient in recipe['ingredients']:
+                ingredient_name = ingredient['name']
                 if ingredient_name in relation:
                     relation[ingredient_name].add(recipe_name)
                 else:
@@ -221,20 +221,20 @@ class FoodGraph():
         
         # Extract the relations, according to the recipes
         for recipe in recipes():
-            ingredients = [ingredient for ingredient in recipe['ingredientes']]
+            ingredients = [ingredient for ingredient in recipe['ingredients']]
             mark = [True for _ in range(len(ingredients))]
             
             for i in range(len(mark)): 
-                substitutions = ingredients[i]['variantes']
+                substitutions = ingredients[i]['variants']
                 
                 if mark[i] and len(substitutions) > 0:
                     
                     # Extract substitution relationships within the recipe
                     relations.append(set())
 
-                    for j in [i] + ingredients[i]['variantes']:
+                    for j in [i] + ingredients[i]['variants']:
                         mark[j] = False
-                        relations[-1].add(ingredients[j]['nombre'])
+                        relations[-1].add(ingredients[j]['name'])
                         
         #todo: Analizar si sería beneficioso eliminar los duplicados. Se pudiese hacer algo como: si una relación ya existe, aumentaré el peso de la arista q existe entre ambos nodos, para indicar un mayor valor entre ellos.
         # Remove duplicate relationships
@@ -244,13 +244,17 @@ class FoodGraph():
         # Establish the edges (relationship) between the pairs of ingredients
         for relation in relations:
             for (ingredient1, ingredient2) in itertools.combinations(relation, 2):
-                value = 1
-                tags = dict([
-                    ('type', 'ingredient-ingredient substitution'),
-                    ('weight', value),
-                    ('label', 'i-i s: ' + str(value))
-                ])
-                self.ingredient_substitution_graph.add_edge(ingredient1, ingredient2, **tags)   
+                if self.ingredient_substitution_graph.has_edge(ingredient1,ingredient2):
+                    self.ingredient_substitution_graph.edges[ingredient1,ingredient2]['weight'] += 1
+                else:
+                    value = 1
+                    tags = dict([
+                        ('type', 'ingredient-ingredient substitution'),
+                        ('weight', value),
+                        ('label', 'i-i s: ' + str(value))
+                    ])
+                    
+                    self.ingredient_substitution_graph.add_edge(ingredient1, ingredient2, **tags)   
             
     
     def _create_edges_of_belonging(self, recipes):
@@ -265,10 +269,10 @@ class FoodGraph():
             
         """  
         for recipe in recipes(): 
-            recipe_name = recipe['nombre']
+            recipe_name = recipe['name']
             
-            for ingredient in recipe['ingredientes']:
-                ingredient_name = ingredient['nombre']
+            for ingredient in recipe['ingredients']:
+                ingredient_name = ingredient['name']
                 
                 #todo: ver si las propiedades de los nodos y las aristas, serán en español o inglés
                 tags = dict(filter(lambda elem: elem[0] in ['opcional', 'cantidad', 'unidad', 'forma'], ingredient.items()))

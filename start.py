@@ -9,7 +9,7 @@ from tmp_create import create_recipes_and_save_csv
 # create_recipes_and_save_csv(n_recipe=50, minimum_amount_of_ingredients=5, maximum_amount_of_ingredients=7, fname='crazy_recipes')
 
 # info = FoodGraph(graphs_path='data/')
-info = FoodGraph(recipes_path='data/recetas_de_nitza-small.json')
+info = FoodGraph(recipes_path='data/recipes.json')
 
 
 # print(nx.k_nearest_neighbors(info.graph))
